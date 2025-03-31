@@ -1,87 +1,115 @@
 
 library(readxl)
-library(tidyverse)
 library(nlme)
 library(systemfit)
+library(tidyverse)
 
-#stem <- read_xlsx("data/AE-raw-2025-03-25.xlsx", sheet = "04-stem-portion_corr", na = "NA")
-plot_init <- read_xlsx("data/AE-raw-2025-03-25.xlsx", sheet = "01-general-info", na = "NA")
+theme_set(theme_bw())
 
-tree_init <- read_xlsx("data/AE-raw-2025-03-25.xlsx", sheet = "03-tree-info", na = "NA") 
+plot_init <- read_xlsx("data/AE-raw-2025-03-30.xlsx", sheet = "01-info", na = "NA")
+tree_init <- read_xlsx("data/AE-raw-2025-03-30.xlsx", sheet = "03-tree", na = "NA") 
+stem_init <- read_xlsx("data/AE-raw-2025-03-30.xlsx", sheet = "04-stem", na = "NA", guess_max = 10000)
 
+## Subset of cols for plot
 plot <- plot_init |>
-  select(tree_code_old, physiographic.region, province, district)
+  select(updated_tree_code, physiographic_region, province, district, altitude, forest_type)
 
-tree <- tree_init |>
-  filter(!is.na(stem_B)) |>
-  left_join(plot, by = "tree_code_old") |>
+tree_select <- tree_init |> select(updated_tree_code, tree_dbh, tree_total_height)
+
+## Split data by log measurements, abnormal measurements and tree top measurements
+
+## Normal measurement
+stem_sub <- stem_init |>
+  filter(!is.na(log_diam_ob)) |>
   mutate(
-    tree_d2h = tree_dbh^2 * tree_total_height,
-    fake_group = "a"
+    measurement_type = "normal",
+    log_base_pom = if_else(is.na(log_base_pom) & !is.na(log_disk_pom), log_disk_pom, log_base_pom)
+    ) |>
+  select(updated_tree_code, log_base_pom, log_diam_ob, log_diam_ub, measurement_type)
+
+## Check
+check <- stem_sub |> filter(is.na(log_base_pom))
+
+## Abnormal
+stem_ab <- stem_init |> 
+  filter(!is.na(log_diam_ob_abnormal)) |>
+  mutate(
+    measurement_type = "abnormal",
+    log_base_pom_abnormal = if_else(is.na(log_base_pom_abnormal) & !is.na(log_base_pom), log_base_pom, log_base_pom_abnormal)
+    ) |>
+  select(updated_tree_code, ends_with("_abnormal"), -log_length_abnormal, measurement_type) |>
+  rename_with(.cols = ends_with("_abnormal"), str_remove, "_abnormal") |>
+  filter(!is.na(log_base_pom))
+  
+## Check
+check <- stem_ab |> filter(is.na(log_base_pom))
+
+
+## Make a function to get non-NA top measurements and bind rows
+vec_end <- c("_below20", "_mid20", "_above20", "_below10", "_mid10", "_above10")
+
+stem_top <- map(vec_end, function(x){
+  
+  stem_init |>
+    select(updated_tree_code, ends_with(x)) |>
+    filter(if_all(ends_with(x), ~!is.na(.))) |>
+    rename_with(.cols = ends_with(x), str_remove, pattern = x) |>
+    mutate(measurement_type = "top")
+  
+}) |> list_rbind()
+
+## Check
+check <- stem_top |> filter(is.na(log_base_pom))
+
+
+## Group all
+stem_all <- bind_rows(stem_sub, stem_ab, stem_top)
+
+## Check NA
+check <- stem_all |> filter(is.na(log_base_pom))
+check <- stem_all |> filter(is.na(log_diam_ob))
+
+## 
+stem_clean <- stem_all |>
+  #filter(!is.na(log_base_pom), !is.na(log_diam_ob)) |>
+  distinct(updated_tree_code, log_base_pom, .keep_all = T) |>
+  arrange(updated_tree_code, log_base_pom) |>
+  group_by(updated_tree_code) |>
+  mutate(log_no = row_number()) |>
+  ungroup() |>
+  left_join(tree_select, by = "updated_tree_code") |>
+  mutate(
+    dr = round(log_diam_ob / tree_dbh, 3),
+    hr = round(log_base_pom / tree_total_height, 3)
+  )
+
+
+ggplot(stem_clean) +
+  geom_point(aes(x = log_base_pom, y = log_diam_ob), size = 0.1)
+
+ggplot(stem_clean) +
+  geom_point(aes(x = hr, y = dr), size = 0.1)
+
+
+## Stem taper data cleaning
+
+
+
+
+## Volume calculation
+log_top <- stem_clean |>
+  group_by(updated_tree_code) |>
+  summarise(log_top = max(log_no))
+
+
+stem_v <- stem_clean |>
+  left_join(log_top, by = "updated_tree_code") |>
+  mutate(
+    log_no_top = case_when(
+    log_no == log_top ~ "TOP",
+    log_no < 10 ~ paste0("0", log_no),
+    TRUE ~ as.character(log_no)
     )
-
-ggplot(tree) +
-  geom_point(aes(x = tree_dbh, y = stem_B))
-
-ggplot(tree) +
-  geom_point(aes(x = stem_V, y = stem_B))
-
-ggplot(tree) +
-  geom_point(aes(x = tree_d2h, y = stem_V, color = species_name))
-
-ggplot(tree) +
-  geom_point(aes(x = tree_d2h, y = stem_V)) +
-  facet_wrap(~species_name)
-
-ggplot(tree) +
-  geom_point(aes(x = tree_d2h, y = stem_V)) +
-  facet_wrap(~physiographic.region)
-
-
-## Test model stem B
-
-lm_bd <- lm(log(stem_B) ~ log(tree_dbh), data = tree)
-summary(lm_bd)
-coef(lm_bd)
-
-coef_bd <- c(exp(coef(lm_bd)[1]), coef(lm_bd)[2])
-names(coef_bd) <- c("a", "b")
-
-nlme_bd <- nlme(
-  model = stem_B ~ a * tree_dbh^b,
-  data = tree, 
-  start = coef_bd,
-  fixed = a + b ~ 1,
-  groups = ~species_name, 
-  weights = varPower(form = ~tree_dbh)
-  )
-
-summary(nlme_bd)
-AIC(nlme_bd)
-fixef(nlme_bd)
-ranef(nlme_bd)
-
-tree_res <- tree |>
-  mutate(
-    pred_bd = predict(nlme_bd),
-    res_bd  = residuals(nlme_bd)
-  )
-
-tree_res |>
-  ggplot(aes(x = pred_bd, y = res_bd)) +
-  geom_point()
-
-tree_res |>
-  ggplot(aes(x = pred_bd, y = stem_B)) +
-  geom_point() +
-  geom_abline(slope = 1, intercept = 0)
-
-tree_res |>
-  ggplot(aes(x = tree_dbh)) +
-  geom_point(aes(y = stem_B)) +
-  geom_line(aes(y = pred_bd, color = species_name)) +
-  theme(legend.position = "bottom")
-
-
+    )
 
 
