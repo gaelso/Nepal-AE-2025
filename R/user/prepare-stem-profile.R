@@ -250,8 +250,8 @@ data_clean_gg$stem_check3 <- data_clean$stem_taper |>
 
 
 ## Save output table
-write_csv(data_clean$stem, "data/data_clean/stem.csv")
-write_csv(data_clean$stem_taper, "data/data_clean/stem_taper.csv")
+write_csv(data_clean$stem, "data/data-clean/stem.csv")
+write_csv(data_clean$stem_taper, "data/data-clean/stem_taper.csv")
 
 
 ## Remove temporary objects

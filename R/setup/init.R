@@ -55,9 +55,14 @@ nlme_out <- function(.data, .start, .md, .name_dev){
     )
   
   ## Output 3: graphs
+  
+  ## Get grouping variable
+  md_group <- names(sum_out$modelStruct$reStruct)
+  
   gg1 <- ggplot(data_out, aes(x = hr)) +
     geom_point(aes(y = dr), size = 0.1) +
-    geom_line(aes(y = pred), col = "darkred")
+    geom_line(aes(y = pred, color = !!sym(md_group))) +
+    theme(legend.position = "none")
   
   gg2 <- ggplot(data_out, aes(x = pred)) +
     geom_point(aes(y = dr), size = 0.1) +
@@ -123,6 +128,8 @@ nlme_out <- function(.data, .start, .md, .name_dev){
     name_dev = .name_dev, 
     date = Sys.time(),
     formula = as.character(sum_out$call)[2],
+    n_obs = sum_out$dims$N,
+    group = md_group,
     AIC = AIC(md), 
     c_exp = c_out,
     m_fixef = list(round(fixef(md), 4)),
@@ -131,7 +138,7 @@ nlme_out <- function(.data, .start, .md, .name_dev){
   )
   
   out <- list(sum_out, data_out, gg_all, tt_params, tt_out)
-  names(out) <- c("model summary", "data", "graph", "parameters", "key info")
+  names(out) <- c("md_summary", "data", "graph", "parameters", "md_info")
 
   out
   
