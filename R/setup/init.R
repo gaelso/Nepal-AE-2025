@@ -66,7 +66,7 @@ nlme_out <- function(.data, .start, .md, .name_dev){
   
   gg2 <- ggplot(data_out, aes(x = pred)) +
     geom_point(aes(y = dr), size = 0.1) +
-    geom_abline(intercept = 0, slope = 1, col = "darkred")
+    geom_abline(intercept = 0, slope = 1, col = "lightgreen")
   
   gg3 <- ggplot(data_out, aes(x = pred, y = res)) +
     geom_point(size = 0.1) +

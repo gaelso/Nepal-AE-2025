@@ -102,8 +102,31 @@ md <- nlme(
 
 AIC(md)
 
+
 md_4params_species_name <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
 md_4params_species_name
+
+
+## + coniferous split ####
+
+start <- c(1.02, 0.62, 0.15, 38)
+#start <- c(1.0, 0.3, 0.3, 24.7, 1.8)
+names(start) <- letters[1:4]
+
+md <- nlme(
+  model = dr ~ a * ((1 - b * hr) * (1 + c * exp(-d * hr)) - (1 - b) * hr^1.8235), 
+  data = data_md,
+  fixed = a + b + c + d ~ 1,
+  groups = ~ conif,
+  start = start, 
+  #weights = varPower(form = ~hr),
+  #control = nlmeControl(maxIter = 100)
+)
+
+AIC(md)
+
+md_4params_conif <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_4params_conif
 
 ##
 ## M. 3 PARAMS: no d, e ####
@@ -209,3 +232,13 @@ md_final$data |>
   facet_wrap(sym(group_final))
 
 md_final$md_info$m_ranef
+
+
+##
+## COMPARE ALL MODELS ####
+##
+
+vec_md <- str_subset(ls(), pattern = "md_")
+vec_md <- vec_md[-length(vec_md)]
+
+md_info_all <- map(vec_md, ~get(.x)$md_info) |> list_rbind()
