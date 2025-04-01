@@ -1,5 +1,6 @@
 ## custom gitignore
 data/
+res/
 .DS_Store
 
 # History files
