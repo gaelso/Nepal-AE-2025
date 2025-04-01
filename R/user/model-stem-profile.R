@@ -16,6 +16,8 @@ data_md <- data_clean$stem_taper |> mutate(no_group = "a")
 ## MODEL ALL PARAMS ####
 ##
 
+## + No group ####
+
 start <- c(1.02, 0.62, 0.15, 38, 4.48)
 #start <- c(1.0, 0.3, 0.3, 24.7, 1.8)
 names(start) <- letters[1:5]
@@ -61,7 +63,7 @@ AIC(md)
 md_4params_nogp <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
 md_4params_nogp
 
-## + group_species ####
+## + species_group ####
 
 start <- c(1.02, 0.62, 0.15, 38)
 #start <- c(1.0, 0.3, 0.3, 24.7, 1.8)
@@ -82,7 +84,26 @@ AIC(md)
 md_4params_species_group <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
 md_4params_species_group
 
+## + species_name ####
 
+start <- c(1.02, 0.62, 0.15, 38)
+#start <- c(1.0, 0.3, 0.3, 24.7, 1.8)
+names(start) <- letters[1:4]
+
+md <- nlme(
+  model = dr ~ a * ((1 - b * hr) * (1 + c * exp(-d * hr)) - (1 - b) * hr^1.8235), 
+  data = data_md,
+  fixed = a + b + c + d ~ 1,
+  groups = ~ species_name,
+  start = start, 
+  #weights = varPower(form = ~hr),
+  #control = nlmeControl(maxIter = 100)
+)
+
+AIC(md)
+
+md_4params_species_name <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_4params_species_name
 
 ##
 ## M. 3 PARAMS: no d, e ####
@@ -143,6 +164,7 @@ md_3params_species_group$md_info$m_ranef
 
 ## NO CONVERGENCE
 
+## + No group ####
 # start <- c(1.0, 0.3, 24.7, 1.8)
 # start <- c(10, 10, 100, 10)
 # names(start) <- c("a", "c", "d", "e")
@@ -167,19 +189,23 @@ md_3params_species_group$md_info$m_ranef
 ## 
 ## More graphs - best model ####
 ##
+md_final <- md_4params_species_name
 
-md_4params_group_species$data |>
+group_final <- md_final$md_info$group
+
+md_final$data |>
   ggplot(aes(x = hr, y = dr)) +
   geom_point(size = 0.1) +
-  geom_line(aes(y = pred, color = species_group)) +
+  geom_line(aes(y = pred, color = !!sym(group_final))) +
   theme(legend.position = "bottom") +
-  labs(color = "") +
-  facet_wrap(~species_group)
+  labs(color = "")
 
-md_4params_group_species$data |>
+md_final$data |>
   ggplot(aes(x = hr, y = dr)) +
   geom_point(size = 0.1) +
-  geom_line(aes(y = pred, color = species_group)) +
+  geom_line(aes(y = pred, color = !!sym(group_final))) +
   theme(legend.position = "none") +
   labs(color = "") +
-  facet_wrap(~species_group)
+  facet_wrap(sym(group_final))
+
+md_final$md_info$m_ranef
