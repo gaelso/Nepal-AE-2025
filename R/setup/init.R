@@ -17,6 +17,7 @@ use_package(readxl)
 use_package(nlme)
 use_package(systemfit)
 use_package(ggrepel)
+use_package(ggpubr)
 use_package(rlang)
 use_package(tidyverse)
 

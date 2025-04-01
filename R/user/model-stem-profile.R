@@ -3,7 +3,8 @@
 tmp <- list()
 
 
-data_md <- data_clean$stem_taper |> mutate(no_group = "a")
+data_md <- data_clean$stem_taper |> 
+  mutate(no_group = "a")
 
 # group <- "no_group"
 # group <- "species_group"
@@ -44,6 +45,7 @@ md_5params_nogp
 
 ## + No group ####
 
+start <- c(0.1, 1, 1, 100)
 start <- c(1.02, 0.62, 0.15, 38)
 #start <- c(1.0, 0.3, 0.3, 24.7, 1.8)
 names(start) <- letters[1:4]
@@ -59,6 +61,7 @@ md <- nlme(
 )
 
 AIC(md)
+summary(md)$numIter
 
 md_4params_nogp <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
 md_4params_nogp
@@ -80,6 +83,7 @@ md <- nlme(
 )
 
 AIC(md)
+summary(md)$numIter
 
 md_4params_species_group <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
 md_4params_species_group
@@ -101,7 +105,6 @@ md <- nlme(
 )
 
 AIC(md)
-
 
 md_4params_species_name <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
 md_4params_species_name
@@ -127,6 +130,8 @@ AIC(md)
 
 md_4params_conif <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
 md_4params_conif
+
+tt <- md_4params_conif$md_info
 
 ##
 ## M. 3 PARAMS: no d, e ####
@@ -212,9 +217,10 @@ md_3params_species_group$md_info$m_ranef
 ## 
 ## More graphs - best model ####
 ##
-md_final <- md_4params_species_name
-
+md_final    <- md_4params_species_name
 group_final <- md_final$md_info$group
+
+md_final$md_info$m_ranef
 
 md_final$data |>
   ggplot(aes(x = hr, y = dr)) +
