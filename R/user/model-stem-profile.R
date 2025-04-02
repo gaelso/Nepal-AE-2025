@@ -35,7 +35,7 @@ md <- nlme(
 
 AIC(md)
 
-md_5params_nogp <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_5params_nogp <- nlme_out(.data = data_md, .out_var = dr, .in_var = hr, .start = start, .md = md, .name_dev = "gs")
 md_5params_nogp
 
 
@@ -63,7 +63,7 @@ md <- nlme(
 AIC(md)
 summary(md)$numIter
 
-md_4params_nogp <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_4params_nogp <- nlme_out(.data = data_md, .out_var = dr, .in_var = hr, .start = start, .md = md, .name_dev = "gs")
 md_4params_nogp
 
 ## + species_group ####
@@ -85,7 +85,7 @@ md <- nlme(
 AIC(md)
 summary(md)$numIter
 
-md_4params_species_group <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_4params_species_group <- nlme_out(.data = data_md, .out_var = dr, .in_var = hr, .start = start, .md = md, .name_dev = "gs")
 md_4params_species_group
 
 ## + species_name ####
@@ -106,7 +106,7 @@ md <- nlme(
 
 AIC(md)
 
-md_4params_species_name <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_4params_species_name <- nlme_out(.data = data_md, .out_var = dr, .in_var = hr, .start = start, .md = md, .name_dev = "gs")
 md_4params_species_name
 
 
@@ -128,10 +128,8 @@ md <- nlme(
 
 AIC(md)
 
-md_4params_conif <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_4params_conif <- nlme_out(.data = data_md, .out_var = dr, .in_var = hr, .start = start, .md = md, .name_dev = "gs")
 md_4params_conif
-
-tt <- md_4params_conif$md_info
 
 ##
 ## M. 3 PARAMS: no d, e ####
@@ -155,7 +153,7 @@ md <- nlme(
 
 AIC(md)
 
-md_3params_nogp <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_3params_nogp <- nlme_out(.data = data_md, .out_var = dr, .in_var = hr, .start = start, .md = md, .name_dev = "gs")
 md_3params_nogp
 
 md_3params_nogp$md_info$m_ranef
@@ -179,7 +177,7 @@ md <- nlme(
 
 AIC(md)
 
-md_3params_species_group <- nlme_out(.data = data_md, .start = start, .md = md, .name_dev = "gs")
+md_3params_species_group <- nlme_out(.data = data_md, .out_var = dr, .in_var = hr, .start = start, .md = md, .name_dev = "gs")
 md_3params_species_group
 
 md_3params_species_group$md_info$m_ranef
@@ -247,4 +245,9 @@ md_final$md_info$m_ranef
 vec_md <- str_subset(ls(), pattern = "md_")
 vec_md <- vec_md[-length(vec_md)]
 
-md_info_all <- map(vec_md, ~get(.x)$md_info) |> list_rbind()
+stem_taper_info <- map(vec_md, ~get(.x)$md_info) |> list_rbind()
+stem_taper_info2 <- stem_taper_info |> select(-gr)
+
+save(stem_taper_info2, file = "res/stem_taper_info2.Rdata")
+
+rm(tmp, vec_md)

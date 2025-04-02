@@ -42,8 +42,11 @@ if (!"res" %in% list.files())              dir.create("res")
 # .name_dev = "gs"
 ## !!!
 
-nlme_out <- function(.data, .start, .md, .name_dev){
+nlme_out <- function(.data, .out_var, .in_var, .start, .md, .name_dev){
 
+  out_var <- enquo(.out_var)
+  in_var <- enquo(.in_var)
+  
   ## Output 1: model summary
   sum_out <- summary(.md)
   
@@ -60,13 +63,13 @@ nlme_out <- function(.data, .start, .md, .name_dev){
   ## Get grouping variable
   md_group <- names(sum_out$modelStruct$reStruct)
   
-  gg1 <- ggplot(data_out, aes(x = hr)) +
-    geom_point(aes(y = dr), size = 0.1) +
+  gg1 <- ggplot(data_out, aes(x = !!in_var)) +
+    geom_point(aes(y = !!out_var), size = 0.1) +
     geom_line(aes(y = pred, color = !!sym(md_group))) +
     theme(legend.position = "none")
   
   gg2 <- ggplot(data_out, aes(x = pred)) +
-    geom_point(aes(y = dr), size = 0.1) +
+    geom_point(aes(y = !!out_var), size = 0.1) +
     geom_abline(intercept = 0, slope = 1, col = "lightgreen")
   
   gg3 <- ggplot(data_out, aes(x = pred, y = res)) +

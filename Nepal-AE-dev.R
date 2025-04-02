@@ -22,5 +22,10 @@ source("R/setup/get-data.R")
 
 source("R/user/prepare-stem-profile.R")
 
+source("R/user/prepare-stem-volume.R")
+
+## Models
+
 source("R/user/model-stem-profile.R")
 
+source("R/user/model-stem-volume.R")
