@@ -1,6 +1,7 @@
 ---
 title: "Nepal 2025 allometric equations"
 subtitle: "Stem total volume models"
+author: TBD
 date: '`r Sys.Date()`'
 format: 
   html:
@@ -124,6 +125,10 @@ On all models, the impact of the following categories were tested as random effe
 
 -   species (9 species)
 
+-   Province
+
+-   Physiographic zone
+
 ### Model validation
 
 Cross validation and comparison with literature models (See other models for Shorea Robusta, Bangladesh Thailand, pan-tropical model, Nepal historical models).
@@ -133,7 +138,7 @@ Cross validation and comparison with literature models (See other models for Sho
 ## Observations
 
 ```{r}
-#|nlayout-ncol: 2
+#| nlayout-ncol: 2
 
 data_clean$tree_stem_v |>
   ggplot(aes(x = tree_dbh, y = tree_total_length)) + 
@@ -168,7 +173,5 @@ data_clean$tree_stem_v |>
 # Conclusion
 
 # Acknowledgment
-
-# 
 
 # Literature
