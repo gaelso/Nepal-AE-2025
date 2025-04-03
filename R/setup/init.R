@@ -106,7 +106,7 @@ nlme_out <- function(.data, .out_var, .in_var, .start, .md, .name_dev){
   
   ## Combine graphs 
   if (is_c) {
-    gg_all <- ggpubr::ggarrange(gg1, gg2, gg4, gg5, align = "hv")
+    gg_all <- ggpubr::ggarrange(gg1, gg2, gg3, gg5, align = "hv")
   } else {
     gg_all <- ggpubr::ggarrange(
       gg1, 
@@ -134,10 +134,10 @@ nlme_out <- function(.data, .out_var, .in_var, .start, .md, .name_dev){
     formula = as.character(sum_out$call)[2],
     n_obs = sum_out$dims$N,
     group = md_group,
-    AIC = AIC(md), 
+    AIC = AIC(.md), 
     c_exp = c_out,
-    m_fixef = list(round(fixef(md), 4)),
-    m_ranef = list(round(ranef(md), 4)),
+    m_fixef = list(round(fixef(.md), 4)),
+    m_ranef = list(round(ranef(.md), 4)),
     gr = list(gg_all)
   )
   

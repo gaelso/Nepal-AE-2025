@@ -80,11 +80,21 @@ summary(data_clean$tree_stem_v)
 #   unique()
 
 data_clean$tree_stem_v |>
+  filter(tree_dbh < 70) |>
   ggplot(aes(x = tree_dbh, color = species_name)) +
   geom_point(aes(y = tree_stem_v), shape = 1) +
   geom_point(aes(y = tree_stem_v20), shape = 4) +
-  theme(legend.position = "bottom") +
-  labs(color = "")
+  theme(legend.position = "none") +
+  labs(color = "") +
+  facet_wrap(~species_name)
+
+data_clean$tree_stem_v |>
+  ggplot(aes(x = tree_d2h, color = species_name)) +
+  geom_point(aes(y = tree_stem_v), shape = 1) +
+  geom_point(aes(y = tree_stem_v20), shape = 4) +
+  theme(legend.position = "none") +
+  labs(color = "") +
+  facet_wrap(~species_name)
 
 
 tmp$outlier <- data_clean$tree_stem_v |>
@@ -113,4 +123,17 @@ data_clean$tree_stem_v <- data_clean$tree_stem_v |>
   filter(!updated_tree_code %in% "551Pr100")
 
 
-rm(tmp)
+tmp$outlier3 <- data_clean$tree_stem_v |>
+  filter(updated_tree_code == "186Sr045") 
+
+data_clean$tree_stem_v |>
+  filter(tree_dbh < 40) |>
+  ggplot(aes(x = tree_dbh, y = tree_stem_v, color = species_name)) +
+  geom_point() +
+  geom_point(data = tmp$outlier3, shape = 21, size = 6, col = "red") +
+  geom_text_repel(data = tmp$outlier3, aes(label = updated_tree_code)) +
+  theme(legend.position = "bottom") +
+  labs(color = "")
+
+
+#rm(tmp)
