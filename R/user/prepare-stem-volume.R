@@ -5,7 +5,18 @@ if (is.null(data_clean)) stop("Run 'prepare-stem-profile.R' first to get the cle
 
 tmp <- list()
 
-tmp$log_top <- data_clean$stem |>
+## !!! Update clean stems by removing buttress Diam measurement !!!
+data_clean$stem <- data_clean$stem |>
+  mutate(
+    log_diam_ob = case_when(
+      updated_tree_code == "227Lp036" & log_no == 1 ~ 21.8,
+      updated_tree_code == "361Cs054" & log_no == 1 ~ 12.3,
+      updated_tree_code == "460An054" & log_no == 1 ~ 15.8,
+      TRUE ~ log_diam_ob
+    )
+  )
+
+tmp$log_base <- data_clean$stem |>
   select(
     updated_tree_code, log_no, 
     log_base_pom = log_base_pom, 
@@ -16,7 +27,6 @@ tmp$log_top <- data_clean$stem |>
 tmp$tree_info <- data_clean$stem |>
   select(-starts_with("log_"), -measurement_type, -hr, -dr) |>
   distinct()
-
 
 data_clean$stem_v <- data_clean$stem |>
   select(
@@ -30,13 +40,19 @@ data_clean$stem_v <- data_clean$stem |>
     log_no_v = log_no - 1,
     log_no = if_else(log_no == 1, 1, log_no - 1)
     ) |>
-  left_join(tmp$log_top, by = join_by(updated_tree_code, log_no)) |>
+  ungroup() |>
+  left_join(tmp$log_base, by = join_by(updated_tree_code, log_no)) |>
   mutate(
     log_base_pom = if_else(log_no_v == 0, 0, log_base_pom),
     log_length = log_top_pom - log_base_pom,
     log_v = round(pi / 80000 * log_length * (log_base_diam_ob^2 + log_top_diam_ob^2), 4)
   ) |>
   select(updated_tree_code, log_no_v, log_length, log_v, starts_with("log_base"), starts_with("log_top"))
+
+# summary(data_clean$stem_v)
+# tmp$check <- data_clean$stem_v |> filter(is.na(log_base_pom))
+# tt <- tmp$check2 <- data_clean$stem_v |> filter(updated_tree_code == "227Lp036")
+# tt <- tmp$check2 <- tmp$log_base |> filter(updated_tree_code == "227Lp036")
 
 tmp$tree_stem_v <- data_clean$stem_v |>
   group_by(updated_tree_code) |>
@@ -113,10 +129,10 @@ data_clean_gg$check_v <- data_clean$tree_stem_v |>
   labs(color = "")
 
 print(data_clean_gg$check_v)
-ggsave(
-  plot = data_clean_gg$check_v, paste0("res/cleaning-examples/check_v-", Sys.time(), ".png"),
-  width = 15, height = 12, units = "cm", dpi = 300
-  )
+# ggsave(
+#   plot = data_clean_gg$check_v, paste0("res/cleaning-examples/check_v-", Sys.time(), ".png"),
+#   width = 15, height = 12, units = "cm", dpi = 300
+#   )
 
 ## !!! Remove trees with large early branches
 data_clean$tree_stem_v <- data_clean$tree_stem_v |>

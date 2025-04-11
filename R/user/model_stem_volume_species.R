@@ -11,9 +11,17 @@ data_md <- data_clean$tree_stem_v |>
   mutate(no_group = "a")
 
 ## Check
-data_md |>
+tmp$outliers <- data_clean$tree_stem_v |>
+  filter(
+    (species_name == "Largestroemia parviflora" & tree_dbh > 60) |
+    (species_name == "Schima Wallichi" & tree_dbh > 60) |
+    (species_name == "Shorea robusta" & tree_dbh > 110)
+  ) 
+
+data_clean$tree_stem_v |>
   ggplot(aes(x = tree_dbh, y = tree_stem_v)) +
-  geom_point(aes(color = species_name), shape = 21) +
+  geom_point(aes(color = species_name), shape = 21) + 
+  geom_point(data = tmp$outlier, shape = 21, col = "red", size = 6) +
   theme(legend.position = "none") +
   facet_wrap(~species_group)
 
@@ -160,4 +168,6 @@ md_v_sp_2p_prov <- map(vec_sp, function(x){
 
 
 md_v_sp_all <- bind_rows(md_v_sp, md_v_sp_2p_prov, md_v_sp_3p) |> arrange(species)
+md_v_sp_all
 
+write_csv(md_v_sp_all, "res/v_species_compa.csv")

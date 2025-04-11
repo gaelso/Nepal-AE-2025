@@ -227,13 +227,23 @@ md_final$data |>
   theme(legend.position = "bottom") +
   labs(color = "")
 
-md_final$data |>
+stem_taper$gg1 <- md_final$data |>
   ggplot(aes(x = hr, y = dr)) +
   geom_point(size = 0.1) +
   geom_line(aes(y = pred, color = !!sym(group_final))) +
   theme(legend.position = "none") +
   labs(color = "") +
   facet_wrap(sym(group_final))
+
+stem_taper$gg_all <- md_final$graph
+ggsave(
+  plot = stem_taper$gg_all, paste0("res/stem-taper/md-4p-species-", Sys.time(), ".png"),
+  width = 15, height = 12, units = "cm", dpi = 300
+)
+ggsave(
+  plot = stem_taper$gg1, paste0("res/stem-taper/md-4p-species_facets-", Sys.time(), ".png"),
+  width = 15, height = 12, units = "cm", dpi = 300
+)
 
 md_final$md_info$m_ranef
 
@@ -246,8 +256,9 @@ vec_md <- str_subset(ls(), pattern = "md_")
 vec_md <- vec_md[-length(vec_md)]
 
 stem_taper_info <- map(vec_md, ~get(.x)$md_info) |> list_rbind()
-stem_taper_info2 <- stem_taper_info |> select(-gr)
+# stem_taper_info2 <- stem_taper_info |> select(-gr)
 
 save(stem_taper_info2, file = "res/stem_taper_info2.Rdata")
-
+write_csv(stem_taper_info2, file = "res/stem_taper_info2.csv")
+write_csv(md_final$parameters, file = "res/stem_taper_info2_params.csv")
 rm(tmp, vec_md)

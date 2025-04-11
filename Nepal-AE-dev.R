@@ -24,6 +24,9 @@ source("R/user/prepare-stem-profile.R")
 
 source("R/user/prepare-stem-volume.R")
 
+source("R/user/prepare-stem-biomass.R")
+
+
 ## Models
 
 source("R/user/model-stem-profile.R")

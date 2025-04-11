@@ -98,6 +98,7 @@ tmp$stem_all <- tmp$stem_cleantop |>
   left_join(tmp$plot, by = "updated_tree_code")
 
 ## Checks NAs from joins
+# summary(tmp$stem_all)
 # summary(tmp$stem_all$tree_total_length)
 # table(tmp$stem_all$species_name, useNA = "ifany")  
 # table(tmp$stem_all$physiographic_region, useNA = "ifany") 
@@ -114,22 +115,26 @@ tmp$stem_all <- tmp$stem_cleantop |>
 #   pull(updated_tree_code) |> 
 #   unique()
 
-
-
+## CHECKS
 # ggplot(tmp$stem_all) +
 #   geom_point(aes(x = log_base_pom, y = log_diam_ob, color = measurement_type), size = 0.1)
-# 
+
 # ggplot(tmp$stem_all) +
 #   geom_line(aes(x = log_base_pom, y = log_diam_ob, color = updated_tree_code)) +
 #   theme(legend.position = "none") +
 #   facet_wrap(~ physiographic_region)
 
-tmp$stem_all |>
-  #filter(measurement_type %in% c("normal", "top")) |>
-  ggplot() +
-  geom_line(aes(x = log_base_pom, y = log_diam_ob, color = updated_tree_code)) +
-  theme(legend.position = "none") +
-  facet_wrap(~ district)
+# ggplot(tmp$stem_all) +
+#   geom_line(aes(x = log_base_pom, y = log_diam_ob, color = updated_tree_code)) +
+#   theme(legend.position = "none") +
+#   facet_wrap(~species_name)
+
+# tmp$stem_all |>
+#   #filter(measurement_type %in% c("normal", "top")) |>
+#   ggplot() +
+#   geom_line(aes(x = log_base_pom, y = log_diam_ob, color = updated_tree_code)) +
+#   theme(legend.position = "none") +
+#   facet_wrap(~ district)
 
 ## Check for district with visible error
 # tmp$stem_all |>
@@ -170,7 +175,15 @@ data_clean$stem <- tmp$stem_all |>
 #   ggplot(aes(x = hr, y = dr)) +
 #   geom_line(aes(color = updated_tree_code), alpha = 0.6) +
 #   theme(legend.position = "none") +
-#   facet_wrap(~district)
+#   facet_wrap(~species_group)
+
+
+## Checks
+data_clean$stem |>
+  ggplot() +
+  geom_line(data = data_clean$stem, aes(x = hr, y = dr, color = updated_tree_code)) +
+  facet_wrap(~species_group) +
+  theme(legend.position = "none")
 
 data_clean_gg$stem_check <- data_clean$stem |>
   filter(dr > 1.5 & hr < 0.2) |>
@@ -182,21 +195,23 @@ data_clean_gg$stem_check <- data_clean$stem |>
   #facet_grid(measurement_type~conif) +
   theme(legend.position = "none")
 
-#print(data_clean_gg$stem_check)
+print(data_clean_gg$stem_check)
+# ggsave(
+#   plot = data_clean_gg$stem_check, paste0("res/cleaning-examples/check_stem-", Sys.time(), ".png"),
+#   width = 15, height = 12, units = "cm", dpi = 300
+# )
 
-tt <- tmp$check <- data_clean$stem |> filter(updated_tree_code == "505Sr123")
 
-## !!! Update clean stems by removing buttress Diam measurement !!!
-data_clean$stem <- data_clean$stem |>
-  filter(
-    !(updated_tree_code == "460An054" & log_no == 1),
-    !(updated_tree_code == "361Cs054" & log_no == 1),
-    !(updated_tree_code == "227Lp036" & log_no == 1)
-    )
+tmp$check <- data_clean$stem |> filter(updated_tree_code == "505Sr123")
 
 
 ## !!! Remove for taper due to early fork - KEEP for volume !!!
 data_clean$stem_taper <- data_clean$stem |>
+  filter(
+    !(updated_tree_code == "460An054" & log_no == 1),
+    !(updated_tree_code == "361Cs054" & log_no == 1),
+    !(updated_tree_code == "227Lp036" & log_no == 1)
+  ) |>
   filter(
     !updated_tree_code %in% c(
       "551Pr100", "474Sr112", "300Sr083", "359Cs053", "372Cs056", "365Sw048",
@@ -219,7 +234,7 @@ data_clean_gg$stem_check2 <- data_clean$stem_taper |>
   facet_wrap(~species_group) +
   theme(legend.position = "none")
 
-# print(data_clean_gg$stem_check2)
+print(data_clean_gg$stem_check2)
 # ggsave(
 #   plot = data_clean_gg$stem_check2, paste0("res/cleaning-examples/check_stem-", Sys.time(), ".png"),
 #   width = 15, height = 12, units = "cm", dpi = 300
@@ -233,7 +248,7 @@ data_clean_gg$stem_check3 <- data_clean$stem_taper |>
   facet_grid(species_group~province) +
   theme(legend.position = "none")
 
-#print(data_clean_gg$stem_check3)
+print(data_clean_gg$stem_check3)
 
 ## More outlier checks
 # data_clean_gg$stem_check4 <- data_clean$stem_taper |>
